@@ -2,8 +2,12 @@
 // View
 
 function top_proj_opt(id_proj){ 
-   return '<li><a href="#/project/'+id_proj+'">Backlog</a></li>'+
-          '<li><a href="#/project/'+id_proj+'/sprints">Sprints</a></li><li><a href="#/project/'+id_proj+'/issues">Issues</a></li>';
+    ht = '<li><a href="#/project/'+id_proj+'">Product Backlog</a></li> \
+    	  <li><a href="#/project/'+id_proj+'/kanban">Kanban</a></li> \
+          <li><a href="#/project/'+id_proj+'/sprint">Sprints</a></li> \
+          <li><a href="#/project/'+id_proj+'/roadmap">Roadmap</a></li> \
+          <li><a href="#/project/'+id_proj+'/issues">Issues</a></li>';
+    return ht;
 }
 
 //=========================================================================================================
@@ -14,8 +18,10 @@ var ProjectsView = function(){
 
 ProjectsView.prototype.render_project = function(project, backlog){
 
-  sprints = '<table class="table"> <caption>Lasts Sprint <button class="btn btn-primary pull-right" type="submit" data-toggle="modal" data-target="#newSprintModal">New Sprint</button></caption> <thead> <tr> <th>Sprint</th> <th>Points</th> <th>Time</th> </tr> </thead> <tbody> <tr> <td>Mark</td> <td><span class="badge">10</span></td> <td>@mdo</td> </tr> <tr>';
-  sprints += '<td>Jacob</td> <td><span class="badge">10</span></td> <td>@fat</td> </tr> <tr> <td>Larry</td> <td><span class="badge">10</span></td> <td>@twitter</td> </tr> </tbody> </table>';
+  sprints = '<table class="table">\
+  				<caption>Lasts Sprint <button class="btn btn-primary pull-right" type="submit" data-toggle="modal" data-target="#newSprintModal">New Sprint</button></caption> \
+  				<thead> <tr> <th>Sprint</th> <th>Points</th> <th>Time</th> </tr> </thead> <tbody> <tr> <td>Mark</td> <td><span class="badge">10</span></td> <td>@mdo</td> </tr> <tr> \
+  <td>Jacob</td> <td><span class="badge">10</span></td> <td>@fat</td> </tr> <tr> <td>Larry</td> <td><span class="badge">10</span></td> <td>@twitter</td> </tr> </tbody> </table>';
 
   ht = '<div class="panel panel-primary"><div class="panel-heading"><h3 class="panel-title">'+project["name"]+'</h3></div><div class="panel-body">';
   ht += '<div class="row"><div class="col-md-8">';
@@ -27,19 +33,19 @@ ProjectsView.prototype.render_project = function(project, backlog){
   ht += '<canvas id="myChart" width="300" height="300"></canvas></div>';
   ht += '<div class="col-md-4">'+sprints+'</div> </div></div></div>'
 
-  ht += '<div class="row"><div class="col-md-8"><div class="panel panel-primary">'+
-        '<div class="panel-heading">'+
-          '<h3 class="panel-title">User Stories</h3>'+
-        '</div>'+
-        '<div class="panel-body">'+
-          '<button class="btn btn-primary pull-right" type="submit" data-toggle="modal" data-target="#newUSModal">New User Story</button>'+
-          '<table class="table">'+
-            '<thead>'+
-              '<tr>'+
-                '<th>Story</th><th>Points</th><th>UX / Design / Front / Back</th><th>Status</th>'+
-              '</tr>'+
-            '</thead>'+
-            '<tbody>';
+  ht += '<div class="row"><div class="col-md-8"><div class="panel panel-primary"> \
+        <div class="panel-heading"> \
+          <h3 class="panel-title">User Stories</h3> \
+        </div> \
+        <div class="panel-body"> \
+          <button class="btn btn-primary pull-right" type="submit" data-toggle="modal" data-target="#newUSModal">New User Story</button> \
+          <table class="table"> \
+            <thead> \
+              <tr> \
+                <th>Story</th><th>Points</th><th>UX / Design / Front / Back</th><th>Status</th>\
+              </tr> \
+            </thead> \
+            <tbody>';
 
   $.each(backlog, function( index, value ) {
     ht += '<tr><th><a href="#/project/'+project["id_project"]+'/story/'+value["id_us"]+'">'+value["subject"]+'</a></th>';
@@ -205,20 +211,29 @@ ProjectsView.prototype.render_projects = function(list) {
 var StoriesView = function(){};
 
 StoriesView.prototype.render_story = function(story){
-  ht = '<div class="panel panel-primary">'+
-        '<div class="panel-heading">'+
-          '<h3 class="panel-title">'+story["subject"]+'</h3>'+
-        '</div>'+
-        '<div class="panel-body">';
 
-  ht += story["subject"]; 
+    var ht = '<div class="panel panel-primary"> ';
+    ht += '    <div class="panel-heading"> '
+    ht += '      <button type="button" class="btn btn-primary btn-xs pull-right">'
+    ht += '      <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>'
+    ht += '      Edit</button>'
+    ht += '      <h3 class="panel-title">'+ story["subject"]+'</h3> \
+    	<input type="text" class="form-control" id="story" placeholder="Story" value="'+story["subject"]+'"> \
+        </div> \
+        <div class="panel-body">';
 
-  ht += story.getPoints() + '<br><br>';
+
+
+
+
+  ht += story["description"] + '<br><br><button type="button" class="btn btn-default btn-xs pull-right"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Edit</button><br><br>'; 
+
+  ht += story.getPoints() + ' Total - ';
   ht += '<span class="badge">'+story["pt_ux"]+'</span> ';
   ht += '<span class="badge">'+story["pt_design"]+'</span> ';
   ht += '<span class="badge">'+story["pt_front"]+'</span> ';
   ht += '<span class="badge">'+story["pt_back"]+'</span>';
-
+  ht += '<button type="button" class="btn btn-default btn-xs pull-right"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Edit</button><br>';
 
   ht += '<h2>Tasks</h2>';
   $.each(story.tasks, function( index, value ) {
@@ -314,6 +329,10 @@ KanbanView.prototype.render_kanban = function(stories, project){
 
   // Colocar outros status de US
 
+  if(project != undefined){
+
+  }
+
   ht = '<div id="sortableKanbanBoards" class="row">'
 
   $.each(tables, function( index, value ) {
@@ -345,14 +364,17 @@ KanbanView.prototype.render_kanban = function(stories, project){
 
   ht += '</div>';
 
-  
 
     $(function () {
         var kanbanCol = $('.panel-body');
-        kanbanCol.css('max-height', (window.innerHeight - 150) + 'px');
+        kanbanCol.css('max-height', (window.innerHeight - 110) + 'px');
 
         var kanbanColCount = parseInt(kanbanCol.length);
-        $('.container-fluid').css('min-width', (kanbanColCount * 350) + 'px');
+        $('.container').css('min-width', (kanbanColCount * 350) + 'px');
+
+        $('.container').css('margin-left', '25px'); 
+        $('.container').css('overflow-x:', 'hidden'); 
+        //$('#sortableKanbanBoards').css('overflow-x:', 'scroll'); 
 
         draggableInit();
 

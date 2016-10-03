@@ -1,11 +1,6 @@
 //
 // Controller
 
-var ProjectController = function(){};
-var KanbanController = function(){};
-var StoryController = function(){};
-var IssueController = function(){};
-
 StoryController.prototype.createStory = function(id_project, subject, description, status, pt_ux, pt_design, pt_front, pt_back, req_type){
   var project = new Project().findProject(id_project);
   var story = new UserStory(subject, description, status, pt_ux, pt_design, pt_front, pt_back, req_type);
@@ -73,7 +68,11 @@ KanbanController.prototype.viewKanbanProject = function(id_project){
 };
 
 KanbanController.prototype.viewKanbanSprint = function(id_project){
+  var project = new Project().findProject(id_project);
 
+  //get sprints do projeto
+
+  new KanbanView().render_kanban(project.backlog);
 };
 
 //
@@ -101,6 +100,10 @@ app.router = new Router()
 })
 .addRoute('#/project/:id_project/kanban', function(req, next){
   new KanbanController().viewKanbanProject(req.params.id_project);
+  $(".projopt").html(top_proj_opt(req.params.id_project));
+})
+.addRoute('#/project/:id_project/sprint/:id_sprint', function(req, next){
+  new KanbanController().viewKanbanSprint(req.params.id_project);
   $(".projopt").html(top_proj_opt(req.params.id_project));
 })
 .errors(404,function(){
