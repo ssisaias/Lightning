@@ -5,18 +5,52 @@ function top_proj_opt(id_proj){
     ht = '<li><a href="#/project/'+id_proj+'">Product Backlog</a></li> \
     	  <li><a href="#/project/'+id_proj+'/kanban">Kanban</a></li> \
           <li><a href="#/project/'+id_proj+'/sprint">Sprints</a></li> \
+          <li><a href="#/project/'+id_proj+'/risks">Risks</a></li> \
           <li><a href="#/project/'+id_proj+'/roadmap">Roadmap</a></li> \
           <li><a href="#/project/'+id_proj+'/issues">Issues</a></li>';
     return ht;
 }
 
+function draggableInit() {
+    var sourceId;
+
+    $('[draggable=true]').bind('dragstart', function (event) {
+        sourceId = $(this).parent().attr('id');
+        event.originalEvent.dataTransfer.setData("text/plain", event.target.getAttribute('id'));
+    });
+
+    $('.panel-body').bind('dragover', function (event) {
+        event.preventDefault();
+    });
+
+    $('.panel-body').bind('drop', function (event) {
+        var children = $(this).children();
+        var targetId = children.attr('id');
+
+        if (sourceId != targetId) {
+            var elementId = event.originalEvent.dataTransfer.getData("text/plain");
+
+            $('#processing-modal').modal('toggle'); //before post
+
+            // Post data 
+            setTimeout(function () {
+                var element = document.getElementById(elementId);
+                children.prepend(element);
+                $('#processing-modal').modal('toggle'); // after post
+            }, 1000);
+
+        }
+
+        event.preventDefault();
+    });
+}
+
 //=========================================================================================================
 
-var ProjectsView = function(){
-  this.target_class = "container";
-};
+ProjectsView.prototype.viewProject = function(id_project){
 
-ProjectsView.prototype.render_project = function(project, backlog){
+  var project = new Project().findProject(id_project);
+  var backlog = new UserStory().getUserStories(project);
 
   sprints = '<table class="table">\
   				<caption>Lasts Sprint <button class="btn btn-primary pull-right" type="submit" data-toggle="modal" data-target="#newSprintModal">New Sprint</button></caption> \
@@ -77,7 +111,7 @@ ProjectsView.prototype.render_project = function(project, backlog){
   ht += '<option value="Ready for test">Ready for test</option><option value="Done">Done</option><option value="Archived">Archived</option></select></div><div class="modal-footer">';
   ht += '<button type="button" class="btn btn-primary save_story">Create Story</button></div></div></div></div>';
 
-  $('.' + this.target_class).html(ht);
+  $('.container').html(ht);
 
   var pontos_projeto = project.getUSPoints(); // Pontuação total do projeto
   var est_sprints = project["est_sprints"];
@@ -145,8 +179,8 @@ ProjectsView.prototype.render_project = function(project, backlog){
 
 };
 
-ProjectsView.prototype.render_projects = function(list) {
-  console.log(list);
+ProjectsView.prototype.viewProjects = function() {
+	console.log(app.project_list);
 
   ht = '<div class="panel panel-primary">'+
         '<div class="panel-heading">'+
@@ -162,7 +196,7 @@ ProjectsView.prototype.render_projects = function(list) {
             '</thead>'+
             '<tbody>';
 
-  $.each(list, function( index, value ) {
+  $.each(app.project_list, function( index, value ) {
     var done = (value.getUSCount() / value.getUSDone()) * 100;
     
     if(done == Infinity){
@@ -195,7 +229,7 @@ ProjectsView.prototype.render_projects = function(list) {
       '</div>'+
     '</div>';
 
-  $('.' + this.target_class).html(ht);
+  $('.container').html(ht);
   $(".save_project").click(function(){ 
     var c = new ProjectController();
     c.createProject($(".p_name").val(), $(".p_desc").val(), 10);
@@ -208,9 +242,10 @@ ProjectsView.prototype.render_projects = function(list) {
 
 //=========================================================================================================
 
-var StoriesView = function(){};
+StoriesView.prototype.viewStory = function(id_project, id_story){
 
-StoriesView.prototype.render_story = function(story){
+	var project = new Project().findProject(id_project);
+    var story = new UserStory().getUserStory(project, id_story);
 
     var ht = '<div class="panel panel-primary"> ';
     ht += '    <div class="panel-heading"> '
@@ -221,10 +256,6 @@ StoriesView.prototype.render_story = function(story){
     	<input type="text" class="form-control" id="story" placeholder="Story" value="'+story["subject"]+'"> \
         </div> \
         <div class="panel-body">';
-
-
-
-
 
   ht += story["description"] + '<br><br><button type="button" class="btn btn-default btn-xs pull-right"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Edit</button><br><br>'; 
 
@@ -247,9 +278,11 @@ StoriesView.prototype.render_story = function(story){
 
 //=========================================================================================================
 
-var IssuesView = function(){};
+IssuesView.prototype.viewIssues = function(id_project){
 
-IssuesView.prototype.render_issues = function(issues, project){
+  var project = new Project().findProject(id_project);
+  var issues = new Issue().getIssues(project);
+
   ht = '<div class="panel panel-primary"><div class="panel-heading">'
   ht += '<h3 class="panel-title">Issues</h3></div><div class="panel-body">'
   ht += '<button class="btn btn-primary pull-right" data-toggle="modal" data-target="#newIssueModal">New Issue</button>'
@@ -269,8 +302,6 @@ IssuesView.prototype.render_issues = function(issues, project){
   ht += '<div class="modal-dialog" role="document"><div class="modal-content"><div class="modal-header">';
   ht += '<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
   ht += '<h4 class="modal-title" id="myModalLabel">New Issue</h4></div>';
-  
-
  
   ht += '<div class="modal-body">';
   ht += '<input type="text" class="form-control issue" placeholder="Issue"><textarea class="form-control description" rows="3" placeholder="Description"></textarea>';
@@ -279,7 +310,6 @@ IssuesView.prototype.render_issues = function(issues, project){
   ht += '<div class="col-md-3"><select class="form-control priority"><option value="Low">Low</option><option value="Normal">Normal</option><option value="High">High</option></select></div>';
   ht += '<div class="col-md-3"><select class="form-control severity"><option value="Wishlist">Wishlist</option><option value="Minor">Minor</option><option value="Normal">Normal</option><option value="Critical">Critical</option></select></div></div></div>';
   ht += '<div class="modal-footer"><button type="button" class="btn btn-primary save_issue">Create Story</button></div></div></div></div>';
-
 
   $('.container').html(ht);
 
@@ -296,11 +326,13 @@ IssuesView.prototype.render_issues = function(issues, project){
     $('#newIssueModal').modal('hide');
     $('.modal-backdrop').hide();
   });
-
-  
 }
 
-IssuesView.prototype.render_issue = function(issue){
+IssuesView.prototype.viewIssue = function(id_project, id_issue){
+
+  var project = new Project().findProject(id_project);
+  var issue = new Issue().getIssue(project, id_issue);
+
   ht = '<div class="panel panel-primary">'+
         '<div class="panel-heading">'+
           '<h3 class="panel-title">'+issue["subject"]+'</h3>'+
@@ -308,59 +340,53 @@ IssuesView.prototype.render_issue = function(issue){
         '<div class="panel-body">';
 
   ht += issue["description"]; 
-
   ht += '</div';
-
   $('.container').html(ht);
 };
 
+//=========================================================================================================
 
+KanbanView.prototype.viewKanban = function(id_project, id_sprint){
 
+	var project = new Project().findProject(id_project);
+  
+  	var tables = ["New", "Ready", "In Progress", "Ready for test", "Done", "Archived"];
+  	// Colocar outros status de US
 
+    //idenktificar se é um projeto ou sprint
+    if(id_sprint == undefined){
+  		stories =  project.backlog;
+    }else{
 
+    }
 
+    ht = '<div id="sortableKanbanBoards" class="row">'
 
-
-
-var KanbanView = function(){};
-KanbanView.prototype.render_kanban = function(stories, project){
-
-  var tables = ["New", "Ready", "In Progress", "Ready for test", "Done", "Archived"];
-
-  // Colocar outros status de US
-
-  if(project != undefined){
-
-  }
-
-  ht = '<div id="sortableKanbanBoards" class="row">'
-
-  $.each(tables, function( index, value ) {
+    $.each(tables, function( index, value ) {
     
-    ht += ' <div class="panel panel-primary kanban-col"> \
-                <div class="panel-heading">' + value+ '<i class="fa fa-2x fa-plus-circle pull-right"></i></div> \
-                <div class="panel-body"> \
-                  <div id="' + value + '" class="kanban-centered">'; 
-                  
-    $.each(stories, function( index_, story ) {
-      if(story.status == value){
-        ht += '<article class="kanban-entry grab" id="item_'+story["id_us"]+'" draggable="true"> \
-              <div class="kanban-entry-inner"> \
-                  <div class="kanban-label"> \
-                    <h2>'+story["subject"]+'</h2> \
-                    <p>'+story["description"]+'</p> \
-                  </div> \
-              </div> \
-            </article> ';
-      }
+	    ht += ' <div class="panel panel-primary kanban-col"> \
+	                <div class="panel-heading">' + value+ '<i class="fa fa-2x fa-plus-circle pull-right"></i></div> \
+	                <div class="panel-body"> \
+	                  <div id="' + value + '" class="kanban-centered">'; 
+	                  
+	    $.each(stories, function( index_, story ) {
+	      if(story.status == value){
+	        ht += '<article class="kanban-entry grab" id="item_'+story["id_us"]+'" draggable="true"> \
+	              <div class="kanban-entry-inner"> \
+	                  <div class="kanban-label"> \
+	                    <h2>'+story["subject"]+'</h2> \
+	                    <p>'+story["description"]+'</p> \
+	                  </div> \
+	              </div> \
+	            </article> ';
+	      }
+	    });
+
+	    ht += '</div></div> \
+	                <div class="panel-footer"><a href="#">Add a card...</a></div> \
+	            </div> \
+	        ';
     });
-
-    ht += '</div></div> \
-                <div class="panel-footer"><a href="#">Add a card...</a></div> \
-            </div> \
-        ';
-
-  });
 
   ht += '</div>';
 
@@ -408,46 +434,11 @@ KanbanView.prototype.render_kanban = function(stories, project){
 
         
 
-        function draggableInit() {
-            var sourceId;
-
-            $('[draggable=true]').bind('dragstart', function (event) {
-                sourceId = $(this).parent().attr('id');
-                event.originalEvent.dataTransfer.setData("text/plain", event.target.getAttribute('id'));
-            });
-
-            $('.panel-body').bind('dragover', function (event) {
-                event.preventDefault();
-            });
-
-            $('.panel-body').bind('drop', function (event) {
-                var children = $(this).children();
-                var targetId = children.attr('id');
-
-                if (sourceId != targetId) {
-                    var elementId = event.originalEvent.dataTransfer.getData("text/plain");
-
-                    $('#processing-modal').modal('toggle'); //before post
-
-
-                    // Post data 
-                    setTimeout(function () {
-                        var element = document.getElementById(elementId);
-                        children.prepend(element);
-                        $('#processing-modal').modal('toggle'); // after post
-                    }, 1000);
-
-                }
-
-                event.preventDefault();
-            });
-        }
-
+        
 
 
 
 /*
-
       <div class="panel panel-primary">
         <div class="panel-heading">
           <h3 class="panel-title">Sprints</h3>
@@ -480,19 +471,5 @@ KanbanView.prototype.render_kanban = function(stories, project){
           </table>
         </div>
       </div>
-
-
-
-
-
-          
-
-
-
-
-
-
-
-
 
 */
