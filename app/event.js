@@ -15,7 +15,6 @@ $(".save_story").click(function(){
     new ProjectController().viewProject(project["id_project"]);
 
     $('#newUSModal').modal('hide');
-    $('.modal-backdrop').hide();
 });
 
 $(".save_project").click(function(){ 
@@ -24,7 +23,6 @@ $(".save_project").click(function(){
     c.viewProjects();
 
     $('#newProjModal').modal('hide');
-    $('.modal-backdrop').hide();
 });
 
 $(".save_issue").click(function(){ 
@@ -38,7 +36,6 @@ $(".save_issue").click(function(){
     new IssueController().viewIssues(project["id_project"]);
 
     $('#newIssueModal').modal('hide');
-    $('.modal-backdrop').hide();
 });
 
  

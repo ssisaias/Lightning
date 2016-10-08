@@ -4,13 +4,13 @@
 // https://github.com/janl/mustache.js
 
 function top_proj_opt(id_proj){ 
-    ht = '<li><a href="#/project/'+id_proj+'">Dashboard</a></li> \
-    	    <li><a href="#/project/'+id_proj+'/backlog">Product Backlog</a></li> \
-    	    <li><a href="#/project/'+id_proj+'/kanban">Kanban</a></li> \
-          <li><a href="#/project/'+id_proj+'/sprint">Sprints</a></li> \
-          <li><a href="#/project/'+id_proj+'/risks">Risks</a></li> \
-          <li><a href="#/project/'+id_proj+'/issues">Issues</a></li>';
-    return ht;
+  ht = '<li><a href="#/project/'+id_proj+'">Dashboard</a></li> \
+    	  <li><a href="#/project/'+id_proj+'/backlog">Product Backlog</a></li> \
+    	  <li><a href="#/project/'+id_proj+'/kanban">Kanban</a></li> \
+        <li><a href="#/project/'+id_proj+'/sprint">Sprints</a></li> \
+        <li><a href="#/project/'+id_proj+'/risks">Risks</a></li> \
+        <li><a href="#/project/'+id_proj+'/issues">Issues</a></li>';
+  return ht;
 }
 
 function draggableInit() {
@@ -48,14 +48,33 @@ function draggableInit() {
 
 ProjectsView.prototype.viewProject = function(id_project){
 
-  var project = new Project().findProject(id_project);
-  var backlog = new UserStory().getUserStories(project);
+  var project = application.projects.findProject(id_project);
+  var backlog = project.backlog.get();
 
-  var template = $('#template_viewproject').html();
+  //if(this instanceof Story || this instanceof Issue){}
+
+  var view = {
+    "backlog" : backlog,
+    "column1": function(){ 
+      return this.subject;
+    },
+    "column2": function(){ 
+      return this.description;
+    },
+    "column3": function(){ 
+      if(this instanceof Story){
+
+      }
+    },
+    "column4": function(){ return 0; },
+    "column5": function(){ return 0; },
+    "column6": function(){ return 0; },
+  };
+
+  var template = $('#template_viewscrumproject').html();
   Mustache.parse(template);   // optional, speeds up future uses
-  var rendered = Mustache.render(template, {name: "Luke"});
+  var rendered = Mustache.render(template, view);
   $('#container').html(rendered);
-  
   
   var pontos_projeto = project.getUSPoints(); // Pontuação total do projeto
   var est_sprints = project["est_sprints"];
@@ -80,26 +99,72 @@ ProjectsView.prototype.viewProject = function(id_project){
     data.datasets[0].data.push(pontos_projeto-media_pontos_sprint*i + media_pontos_sprint);
   }
 
-  var ctx = document.getElementById("myChart").getContext("2d");
+  var ctx = document.getElementById("sprintchart").getContext("2d");
   var myChart = new Chart(ctx, {
     type: 'line',
     options: {
         maintainAspectRatio: false,
-        responsive: true
+        responsive: false
     },
     data: data
+  });
+
+
+    var data_risk =  {
+      labels: [],
+      datasets: [
+        {
+          label: 'Risks',
+          backgroundColor: "rgba(128, 128, 128, 0.2)",
+          data: []
+        }
+      ]
+  };
+
+  for(i = 1; i <= est_sprints+1; i++){
+    data_risk.labels.push("Sprint " +i);
+  }
+
+  var ctx2 = document.getElementById("riskchart").getContext("2d");
+  var myChart2 = new Chart(ctx2, {
+    type: 'line',
+    options: {
+        maintainAspectRatio: false,
+        responsive: false
+    },
+    data: data_risk
   });
 
 };
 
 ProjectsView.prototype.viewProjects = function() {
   
-  var template = $('#template_viewprojects').html();
-  Mustache.parse(template);   // optional, speeds up future uses
-  var rendered = Mustache.render(template, {name: "Luke"});
-  $('#container').html(rendered);
+  var view = {
+    "projects" : application.projects.projects,
+    "id": function(){
+      return this.id_project;
+    },
+    "progress": function () {
+      if(this.getUSCount() == 0 || this.getUSDone() == 0){
+        return (this.getUSCount() / this.getUSDone()) * 100;
+      }
+      return 0;
+    }, 
+    "name": function () {
+      return this.name;
+    }, 
+    "story_count": function () {
+      return this.getUSCount();
+    }, 
+    "issue_count": function () {
+      return this.getIssueCount();
+    }  
+  };
 
- 
+  var template = $('#template_viewprojects').html();
+  Mustache.parse(template);   
+  var rendered = Mustache.render(template, view);
+  $('#container').html(rendered);
 };    
 
 //=========================================================================================================
@@ -119,6 +184,9 @@ StoriesView.prototype.viewStory = function(id_project, id_story){
 //=========================================================================================================
 
 IssuesView.prototype.viewIssues = function(id_project){
+
+  var project = new Project().findProject(id_project);
+  var issues = new Issue().getIssues(project);
 
   var template = $('#template_').html();
   Mustache.parse(template);   // optional, speeds up future uses
