@@ -67,6 +67,8 @@ var ProjectCollection = function(){
 
 application.projects = new ProjectCollection();
 
+//=========================================================================================================
+
 var StoryCollection = function(){
   this.stories = [];
 
@@ -97,6 +99,8 @@ var StoryCollection = function(){
   };
 }; 
 
+//=========================================================================================================
+
 var IssueCollection = function(){
   this.issues = [];
 
@@ -116,6 +120,8 @@ var IssueCollection = function(){
     return this.issues;
   };
 };
+
+//=========================================================================================================
 
 var SprintCollection = function(){
   this.sprints = [];
@@ -137,10 +143,7 @@ var SprintCollection = function(){
   };
 };
 
-
-
-
-
+//=========================================================================================================
 
 var BacklogCollection = function(){
   this.backlog = [];
@@ -172,20 +175,20 @@ var ProjectScrum = function(name, description, est_sprints){
   this.avg_point = 0;
   this.issues = new IssueCollection();
   this.sprints = new SprintCollection();
-  this.story = new StoryCollection();
+  this.stories = new StoryCollection();
   this.backlog = new BacklogCollection();
   //this.release = new Release(0, 0, 0);
 
   this.getUSPoints = function(){
     var points = 0;
-    $.each(this.story.get(), function( index, value ) {
+    $.each(this.stories.get(), function( index, value ) {
       points += value.getPoints();
     });
     return points;
   };
 
   this.getUSCount = function(){
-    return this.story.get().length;
+    return this.stories.get().length;
   };
 
   this.getIssueCount = function(){
@@ -194,7 +197,7 @@ var ProjectScrum = function(name, description, est_sprints){
 
   this.getUSDone = function(){
     var c = 0;
-    $.each(this.story.get(), function( index, value ) {
+    $.each(this.stories.get(), function( index, value ) {
       if(value.status === "Done"){
         c++;
       }
@@ -203,6 +206,8 @@ var ProjectScrum = function(name, description, est_sprints){
   }
 
 };
+
+//=========================================================================================================
 
 var Story = function(subject, description, status, pt_ux, pt_design, pt_front, pt_back, req_type){
   
@@ -235,7 +240,7 @@ var Story = function(subject, description, status, pt_ux, pt_design, pt_front, p
 
 //=========================================================================================================
 
-var Issue = function(subject, description, type, severity, priority){
+var Issue = function(subject, description, type, severity, priority, status){
    if(subject != undefined || subject != null){
     this.id_issue = Base64.encode(subject);
   }
@@ -245,6 +250,7 @@ var Issue = function(subject, description, type, severity, priority){
   this.type = type;
   this.severity = severity;
   this.priority = priority;
+  this.status = status;
 
   this.getIssues = function(project){
     return project.issues;  
@@ -302,9 +308,14 @@ var Sprint = function(subject, date_start, date_finish_prog, status){
 var project = new ProjectScrum("Teste", "Teste", 10);
 application.projects.add(project);
 
-var issue = new Issue("Teste", "Teste");
+var issue = new Issue("Teste", "Teste", "Bug", "Critical", "High", "New");
+var story = new Story("Estoria", "description", "status", 1, 1, 1, 1, "Client");
+
 application.projects.projects[0].issues.add(issue);
 application.projects.projects[0].backlog.add(issue);
+
+application.projects.projects[0].stories.add(story);
+application.projects.projects[0].backlog.add(story);
 
 //console.log(application.projects.serialize());
 

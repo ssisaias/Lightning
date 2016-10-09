@@ -4,12 +4,14 @@
 // https://github.com/janl/mustache.js
 
 function top_proj_opt(id_proj){ 
-  ht = '<li><a href="#/project/'+id_proj+'">Dashboard</a></li> \
-    	  <li><a href="#/project/'+id_proj+'/backlog">Product Backlog</a></li> \
-    	  <li><a href="#/project/'+id_proj+'/kanban">Kanban</a></li> \
+  ht = '<li><a href="#/project/'+id_proj+'">Dashboard n\' Backlog</a></li> \
+        <li><a href="#/project/'+id_proj+'/tasks">Tasks</a></li> \
         <li><a href="#/project/'+id_proj+'/sprint">Sprints</a></li> \
         <li><a href="#/project/'+id_proj+'/risks">Risks</a></li> \
-        <li><a href="#/project/'+id_proj+'/issues">Issues</a></li>';
+        <li><a href="#/project/'+id_proj+'/issues">Issues</a></li> \
+        <li><a href="#/project/'+id_proj+'/releases">Releases</a></li> \
+        <li><a href="#/project/'+id_proj+'/canvas">Canvas Plan</a></li> \
+        <li><a href="#/project/'+id_proj+'/wiki">Project Wiki</a></li> ';
   return ht;
 }
 
@@ -44,9 +46,38 @@ function draggableInit() {
     });
 }
 
+function dragndrop_sprint(){
+  var sourceId;
+
+    $('[draggable=true]').bind('dragstart', function (event) {
+        sourceId = $(this).parent().attr('id');
+        event.originalEvent.dataTransfer.setData("text/plain", event.target.getAttribute('id'));
+    });
+
+    $('.sprintitemsdroparea').bind('dragover', function (event) {
+        event.preventDefault();
+    });
+
+    $('.sprintitemsdroparea').bind('drop', function (event) {
+      var children = $(this).children();
+      var targetId = children.attr('id');
+      console.log(children);
+
+      if (sourceId != targetId) {
+        var elementId = event.originalEvent.dataTransfer.getData("text/plain");
+        var element = document.getElementById(elementId);
+        children.prepend(element);
+      }
+
+        event.preventDefault();
+    });
+}
+
 //=========================================================================================================
 
 ProjectsView.prototype.viewProject = function(id_project){
+
+  
 
   var project = application.projects.findProject(id_project);
   var backlog = project.backlog.get();
@@ -63,11 +94,28 @@ ProjectsView.prototype.viewProject = function(id_project){
     },
     "column3": function(){ 
       if(this instanceof Story){
-
+        return 'Total de pontos';
+      }
+      if(this instanceof Issue){
+        return this.type + ' - ' + this.status;
       }
     },
-    "column4": function(){ return 0; },
-    "column5": function(){ return 0; },
+    "column4": function(){ 
+      if(this instanceof Story){
+        return this.pt_ux + ' ' + this.pt_design + ' ' + this.pt_front + ' ' + this.pt_back;
+      }
+      if(this instanceof Issue){
+        return this.severity;
+      } 
+    },
+    "column5": function(){ 
+      if(this instanceof Story){
+        return this.status;
+      }
+      if(this instanceof Issue){
+        return this.priority;
+      }  
+    },
     "column6": function(){ return 0; },
   };
 
@@ -99,6 +147,9 @@ ProjectsView.prototype.viewProject = function(id_project){
     data.datasets[0].data.push(pontos_projeto-media_pontos_sprint*i + media_pontos_sprint);
   }
 
+   $('#sprintchart').css('background-color', 'rgba(0, 0, 0, 0)');
+  $('#riskchart').css('background-color', 'rgba(0, 0, 0, 0)');
+
   var ctx = document.getElementById("sprintchart").getContext("2d");
   var myChart = new Chart(ctx, {
     type: 'line',
@@ -108,6 +159,7 @@ ProjectsView.prototype.viewProject = function(id_project){
     },
     data: data
   });
+  ctx.fillStyle='white';
 
 
     var data_risk =  {
@@ -134,6 +186,9 @@ ProjectsView.prototype.viewProject = function(id_project){
     },
     data: data_risk
   });
+  
+
+  dragndrop_sprint();
 
 };
 

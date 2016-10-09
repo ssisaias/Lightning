@@ -110,24 +110,24 @@
       <!-- View Issues -->
       <!-- View Tasks -->
 
-    <script id="template_viewscrumproject" type="x-tmpl-mustache">
-      
-
+<script id="template_viewscrumproject" type="x-tmpl-mustache">
   <div class="row">
     <div class="col-md-8">
-
-
-      
       <div class="panel panel-primary"> 
         <div class="panel-heading"> 
           <button class="btn btn-default btn-sm pull-right" style="margin-top: -5px;" type="submit" data-toggle="modal" data-target="#newSprintModal">Start Sprint</button>
           <h3 class="panel-title">Sprint 1</h3> 
         </div> 
         <div class="panel-body"> 
+           <div class="divTable">
+            <div class="divTableBody sprintitem">
+
+              <div class="sprintitemsdroparea">Drop backlog itens here</div>
+            </div>
+           </div>
            
         </div>
       </div>
-
 
       <div class="panel panel-primary"> 
         <div class="panel-heading"> 
@@ -135,8 +135,6 @@
           <h3 class="panel-title">Product Backlog</h3> 
         </div> 
         <div class="panel-body"> 
-
-          
           <div class="row" style="margin: 10px;">
             <div class="col-md-8">
               <input type="text" class="form-control" placeholder="Thing to get done">
@@ -146,15 +144,15 @@
                 <option value="0.5">Story</option>
                 <option value="0.5">Task</option>
                 <option value="0">Issue</option>
+                <option value="0">Change Request</option>
               </select>
             </div>
           </div>
           <br>
-
           <div class="divTable">
             <div class="divTableBody">
               {{#backlog}}
-              <div class="divTableRow">
+              <div class="divTableRow" draggable="true">
                 <div class="divTableCell">{{column1}}</div>
                 <div class="divTableCell">{{column2}}</div>
                 <div class="divTableCell">{{column3}}</div>
@@ -165,48 +163,33 @@
               {{/backlog}}
             </div>
           </div>
-
-
-
-
-
         </div>
       </div>
     </div>
-
     <div class="col-md-4">
       <div class="panel panel-primary">
         <div class="panel-heading">
           <h3 class="panel-title">'+project["name"]+'</h3>
         </div>
         <div class="panel-body">
-        
-          
-            
-              <div class="row">
+            <div class="row">
                 <div class="col-md-6">
                   <span class="badge">' + project.getUSPoints() + '</span> Defined Points 
                 </div>
                 <div class="col-md-6">
                   <span class="badge">' + project.getUSDone() + '</span> Closed Points
                 </div>
-              </div>
-              <br>
+            </div>
+            <br>
             <div class="progress">
               <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">60%</div>
             </div>
-
-            
-            <canvas id="sprintchart" width="370" height="250"></canvas>
-            <canvas id="riskchart" width="370" height="250"></canvas>
-            
-          
-
+            <div style="background: #ffffff;"><canvas id="sprintchart" width="370" height="250"></canvas></div>
+            <div style="background: #ffffff;"><canvas id="riskchart" width="370" height="250"></canvas></div>
         </div>
       </div>
     </div>
-
-    </script>
+</script>
 
 
 
