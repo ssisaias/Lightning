@@ -8,9 +8,12 @@ var dialog = electron.dialog;
 let mainWindow;
 
 function createWindow () {
-  mainWindow = new BrowserWindow({width: 1200, height: 800})
+  mainWindow = new BrowserWindow({width: 1200, height: 800, show: false})
   mainWindow.loadURL(`file://${__dirname}/app/index.html`)
 
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show()
+  })
   mainWindow.on('closed', function () {
     mainWindow = null
   })
